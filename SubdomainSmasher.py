@@ -2,11 +2,12 @@ import censys.certificates
 import socket
 import requests
 import ipaddress
+import json
 
 UID = "" #UID from censys.io api
 SECRET = "" #SECRET from censys.io api
 
-domain = input('[~] Server Domain: ')
+domain = input('[~] Pivot Domain: ')
 
 
 #Function to get information on domain and/or ip
@@ -54,6 +55,8 @@ def get_tcpshield_v4_ranges():
     tcp_shield_ranges = (request.text).splitlines()
     return tcp_shield_ranges
 
+
+
 #Gather IPv4 cloudflare ranges to filter them out of the results
 def get_cloudflare_v4_ranges():
     url = 'https://www.cloudflare.com/ips-v4'
@@ -63,7 +66,7 @@ def get_cloudflare_v4_ranges():
 
 #Check if param ip address is tcpshield
 def check_tcpshield(ip):
-    if ip != "ERR::FAILED_RES":
+    if ip != "ERR::FAILED_RES" and ip != "ERR::PRIV_IP": # Solves issues of having private IP addresses as results.
         ip_object = ipaddress.ip_address(ip)
         for cidr in get_tcpshield_v4_ranges():
             cidr_object = ipaddress.ip_network(cidr)
@@ -73,7 +76,7 @@ def check_tcpshield(ip):
 
 #Check if param ip address is cloudflare
 def check_cloudflare(ip):
-    if ip != "ERR::FAILED_RES":
+    if ip != "ERR::FAILED_RES" and ip != "ERR::PRIV_IP": # Solves issues of having private IP addresses as results.
         ip_object = ipaddress.ip_address(ip)
         for cidr in get_cloudflare_v4_ranges():
             cidr_object = ipaddress.ip_network(cidr)
@@ -118,10 +121,15 @@ def subdomains_list(domain, subdomains): #Take the list and show it in a structu
     count = 1
     for subdomain in subdomains:
         try:
-            ip = socket.gethostbyname(subdomain)
+            raw_ip = socket.gethostbyname(subdomain)
+            if ipaddress.ip_address(raw_ip).is_global: # Solves issues of having private IP addresses as results.
+                ip = raw_ip
+            else:
+                ip = 'ERR::PRIV_IP' # Solves issues of having private IP addresses as results.
         except socket.gaierror:
             ip = 'ERR::FAILED_RES'
 
+ 
         if check_tcpshield(ip):
             print(' [{}] {} - (ERR::TCP_SHIELD_FOUND)'.format(count, subdomain, ip))
         elif check_cloudflare(ip):
@@ -133,7 +141,7 @@ def subdomains_list(domain, subdomains): #Take the list and show it in a structu
             possibilities.append(ip)
             
         count += 1
- 
+     
     print('')
     if len(possibilities) > 0:
         print('[+] Possible Server Direct IPs ({}):'.format(len(set(possibilities))))
