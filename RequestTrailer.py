@@ -1,4 +1,4 @@
-import requests, warnings, socket, re
+import requests, warnings, socket
 from urllib.parse import urlparse
 
 def gatherChain(url, verify_mode): #Gather the redirect chain of the url passed as a parameter
