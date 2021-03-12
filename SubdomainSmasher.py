@@ -21,6 +21,7 @@ def get_info(datatype, data):
             reqjson = req.json()
         except json.decoder.JSONDecodeError as err:
             print('JSON Error, unable to gather info on ip/domain')
+            print('Stacktrace:', err)
         if str(datatype) == "ISP":
             try:
                 isp = reqjson['isp']
