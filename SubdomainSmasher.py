@@ -132,9 +132,9 @@ def subdomains_list(domain, subdomains): #Take the list and show it in a structu
 
  
         if check_tcpshield(ip):
-            print(' [{}] {} - (ERR::TCP_SHIELD_FOUND)'.format(count, subdomain, ip))
+            print(' [{}] {} - (ERR::TCP_SHIELD_FOUND)'.format(count, subdomain))
         elif check_cloudflare(ip):
-            print(' [{}] {} - (ERR::CLOUDFLARE_FOUND)'.format(count, subdomain, ip))
+            print(' [{}] {} - (ERR::CLOUDFLARE_FOUND)'.format(count, subdomain))
         elif ip == "ERR::FAILED_RES":
             print(' [{}] {} - ({})'.format(count, subdomain, ip))
         else:
